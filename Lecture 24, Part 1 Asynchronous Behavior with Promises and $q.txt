@@ -1,0 +1,75 @@
+[SOUND]
+In this lecture,
+we're going to talk about coding and dealing with asynchronous behavior
+with Promises and the $q service. Before Promises, we had callbacks,
+and we actually still do. The way you would execute asynchronous
+behavior is, you would have some asynchronous function, and you would
+pass as an argument a function value that would get executed once
+the asynchronous behavior was complete. The problem with this model is
+that there's not really an easy, straightforward way to task the results
+of the asyncFunction back to the caller. Now this is especially if
+the real recipient of the result is a few layers away. In other words, one service can
+call some other service, and that service may call your
+synchronized function. The result should really propagate all the
+way to the top function, if that's what you choose, but it's very hard to
+achieve this with a callback approach. In addition, what would happen if you needed to chain
+a few asynchronous pieces together? For example,
+when asyncFunction1 would complete, instead of returning the value, you
+would still have to call asyncFunction2. When that would complete,
+you would finally move asyncFunction3, and only then deal with all
+the results combined together. Right off the bat, you can see that
+it's very hard to read this code, and that's not even showing
+the error handling. With error handling, this would
+look like a complete mess, also, what if we wanted all these async
+functions to execute in parallel? And then, if that recall succeeded,
+execute our logic, but even if one failed, fail all of them and
+execute some error handling. That's not a very trivial thing to
+accomplish with a callback approach, but with a Promise API, we can actually get all these
+things accomplished fairly easily. The Promise API is actually part
+of the new ES6 API, however, not all browsers implement ES6 API yet,
+so Promise object might not be available. But AngularJS implements its own
+Promise API that's very similar to the one that's coming in ES6,
+so what is a Promise? A promise is an object which
+can be passed around or returned that holds references to
+the outcome of asynchronous behavior. In Angular, promises are created through the special
+service called the dollar sign q service. Let's take a look at some templates as
+to how you would go about doing that So here we have an asynchronous function. And the very first thing we would
+do is call the $q.defer method. That service creates an object that
+represent the asynchronous environment with all the hooks into it
+including the promise object. Then after we implement some behavior
+that object has a special method called resolve that marks a successful
+completion of our execution and then wraps the data for
+the promise to retrieve later on. In this case we're wrapping
+the result object or some result as part of
+our resolve method call. If something goes wrong we could call
+deferred.reject, which will mark unsuccessful completion and
+will also wrap some data for the promise. In this case it will probably be some
+error object or some error message. Last but certainly not least, we have to return our promise
+to the caller of this function. So therefore we say
+return deferred.promise;. That sends back the promise
+object to the caller, which is really a hook back to
+the life cycle of this entire process. Now remember that even though this
+sample code looks synchronous. And it probably is
+looking at it right now. The parts that ultimately
+call deferred.resove and deferred.reject can be part of something
+that truly runs asynchronously. For example if we wanted to
+simulate that in this example, we could wrap the highlighted lines
+of code in a setTimeoutFunction The next step is for the caller to
+call our asynchronous function and to capture a reference
+to the promise object. You can clearly see here that a promise
+is something I could pass around into other API's map application. Then wherever my
+application is appropriate. I could call the then function on my
+promise and extract the results or handle the error. Note that the then function
+takes two arguments. Both of which are functions themselves. The argument that the promise API
+will send into these functions is what we resolve the rejected,
+the deferred object with accordingly. Obviously here I'm referring
+to the result object and the error object which could
+be just a simple string. The then function is also chainable
+because it itself returns a promise. We'll demonstrate the power of
+this chainability in example part 2 of this lecture. The $q Service also has
+the capabilities to resolve multiple promises asynchronously,
+so no promise has to wait for another to complete in order
+to even start running. The $q.all method accomplishes that, plus
+the ability to have a central place to handle all the results or to handle any
+errors that come from any of the promises. In part two this lecture,
+let's go back to the code editor and see some examples of how to use this API.

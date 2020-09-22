@@ -1,0 +1,191 @@
+[SOUND] By now,
+you should be fairly familiar with our shopping list application
+that we've been building. You can enter the name of the item,
+the quantity of the item. Click Add Item, and it will appear
+in a list right below this form. In this version of the shopping list, number one is we are going to assume
+that the quantity is just a number and that is why I put the word boxes,
+to signify so many boxes. And number two, in order to
+prevent me from gaining weight, we're going to have a special service
+that's going to examine the item name and make sure there's no word cookie in it. If there is, it will prevent me from
+adding that item to my shopping list. Likewise, we will also
+examine the quantity. And if the quantity is
+anything greater than 5, the service will likewise prevent me
+from putting that item on the list. Now since analyzing the item name can be
+a very complicated process, and therefore can take a long time, we're going to
+implement that in a synchronous fashion. Analyzing the quantity
+will also be asynchronous. What that will mean is that
+when we click an item. The item will not immediately
+appear below the form. But will first get analyzed,
+and then decided whether or not it should even appear. And if it does, only then will it
+appear a couple of seconds later. Let's take a look as to
+how I implemented that. Okay, so I'm in my Atom editor. And I'm located in Lecture24 folder, which
+is in fullstack-course5/examples folder. And this is our ShoppingListPromiseApp. And, as you've seen before,
+this is just one controller with two bound text boxes for itemName and itemQuantity. And a button that's bound to list.addItem. Right below that, we have our
+ordered list that we'll go ahead and loop through our items, our item array. And will give us the quantity
+boxes of the name of the item, and a button to remove that from the list. Let's take a look at our app.js. In our app.js besides the caller and
+controller. And, ShoppingListService we also declare one more service code
+WeightLossFilterService. Well, let's take a look at
+the ShoppingListService first. Because, that is what our controller's
+going to directly invoke. So here's our ShoppingListService. And you can see we're
+injecting it with this service called WeightLossFilterService. Don't worry about the $q for now,
+we're not going to be using it for now, but we will use it in a minute. So you could see that
+the addItem method inside of our ShoppingListService is something
+that's using asynchronous behaviour by calling
+WeightLossFilterService.checkName. So, what we're doing is we're
+checking the name to make sure that we're allowed to put
+that on our shopping list. So, we could the then method and
+say promise.then and get the response. And before we use the response, we want to make sure that the quantity
+Is likewise acceptable so we're going to call the weight loss filter
+service again inside of our then function, the success then function and
+we're going to get the nextPromise. The nextPromise then will
+call the then function again. And only then, if everything is
+checking out, we will go ahead and push that new item that we'll going to
+create up to our items array. If this next promise fails for
+whatever reason, we'll going to go ahead and
+output the error message to the console. Likewise, if the outer promise fails,
+we'll going to do the same thing, we'll going to output the error
+message to the console. So far so good, let's go and
+check out a WeightlossFilterService. We scroll down,
+there's lot of commented out code. But here's the WeightlossFilterService. And in depends on q service and
+the timeout service. The timeout service is the same as
+the set timeout of JavaScript except its angularize so you don't have to
+manually call dollar sign apply or dollar sign digest. Here's our method checkName. And the checkName method first
+acquires our deferred object that contains the environment for the entire
+asynchronize behavior and sets up this result with a simple message which in this
+case is just an empty message, so far. Then, we're going to go ahead and execute our timeout function that's going
+to simulate our asynchronous behavior. And, we're going to do this
+very complicated algorithm of figuring out whether or
+not Yaakov is trying to put anything that has to do with cookies
+as part of his shopping list. Basically, we're not really doing
+anything complex, I was joking. All we're going to do is we're
+going to lowercase the name. The item name, and then see if the word
+cookie appears anywhere in that name. And if it does not appear, then we'll
+go ahead and resolve it, meaning it's going to be successful with the result,
+which in this case is just an empty object really, with just one message property,
+that is an empty message. However, if we find a cookie as
+part of the name of the item, we're gong to set the result.message
+to stay away from cookies, Yaakov. And then we'll call deferred.reject, which
+will complete our promise unsuccessfully passing it the result so we could
+retrieve that error message from there. Note that what you name these arguments
+makes absolutely no difference. It's just going to get retrieved from
+the promise inside of the then function. And the time out is going to wait three
+seconds before this entire functionality is executed. Last but not least, we need to return the promise
+back to the caller of this function. So they can have a hook to tap into,
+whether that's going to be a rejection of our asychronized behavior or a resolution
+of it by resolve or reject method. Note that the check quality
+method is basically identical. The only difference here is, is we are
+checking the quantity to be less than six as opposed to checking whether the word
+cookie appears as part of the item name. The only other difference is that we're
+going to wait only one second instead of three seconds to execute this behavior. And the error message is going to say,
+that's too much, Yaakov. Instead of saying,
+stay away from the cookies. Let's go ahead and save that and
+go back to our browser. And we'll try to put something like chips. And we'll say we need
+three boxes of chips. And let's go ahead and click Add. And we'll count about three seconds. And another second after that and
+four seconds later, we see that we have three boxes of chips. Now let's try to go ahead and get around
+the system by saying we're going to to have cookie-flavored chips and
+we'll get three boxes of those. We'll click Add item and
+about three seconds later, we see that it says
+stay away form cookies, Yaakov in our console, and
+there's no item that is added to our list. Now what happens if I say chips again,
+but this time time I'll say six, so one more than five, and click Add Item. It will go ahead and check that cookies
+are not part of the item list, and then it will check and
+see that six is really greater than five. And therefore is going to
+say that's too much, Yaakov. It will reject the promise, and therefore we're not going to
+see another item on our list. Okay, so so far so good. But let's go back to our code that
+we used to handle the promise. And let's take a look as to how
+we're handling that promise. It's a little bit messy, right? Even though this is not call backs,
+it still kind of looks like call backs, there's just a lot of indenting and
+just a lot of code. It's hard to understand
+what's calling what. Let's go ahead and re-write this
+function and make our code much cleaner. So we'll comment this out. And I already have a second
+version of it sitting right here. We'll uncomment that and
+let's go over this code. Now this is that same addItem method
+on our shopping list service. And I'm still calling
+the weightLossFilterService checkName. But I'm grabbing this promise. And when I call the then method on
+this promise I don't even supply to it the second function that's
+supposed to handle an error. The reasons I don't do that is because if
+there is an error it will go ahead and bubble up and propagate. And I could call the then
+method on that again, which will once again return a promise. And the I could call the special
+method called catch, which will get executed when
+defer.reject gets invoked. Now in the original promise.then all I
+have to do is execute our weight loss filter service that checks the quantity
+now of my item in the shopping list. And since that returns a promise
+I can just return that which will then get picked up
+by the next then method. The reason I don't really need to do
+anything here is because I know that my response object is just an empty
+object with an empty message. In other words, if we're in this code
+block that means we succeeded and we need to do nothing else other than
+check the quantity for validity. The next then method treats
+the response the same way. Because if we got to this code block,
+it means that the checkQuantity passed and we're allowed to add the item, or push the item,
+onto our array of shopping list items. So note what we did here. We no longer have to handle
+the error condition or the rejection of the promise
+in every single case. We only have do this once and
+we can it centrally. So certainly that's much easier
+to read code and much cleaner. Let's go ahead and save that and
+see if this works. Let's go back to our browser and
+they will say cookies, we'll give it four boxes of cookies. We'll click Add, and
+that will be an error condition. And therefore will state
+stay away from cookies. If we stay chips and click Add,
+about three to four seconds later, it should go ahead and
+add those four boxes of chips. And if we leave it as chips but
+put let's say seven boxes. Click Add, that will also resolve but
+resolve with a rejection and then therefore it will say that's too much
+Yaakov because our catch method right here is catching any errors from any of
+the promises that were chained above it. Okay, so far, so good. But we can improve it even more. Let's take a look as to what's going
+on when we try to add a valid item but with too many boxes. Let's go ahead and clear this and
+click add once again. Take a look as to how long that takes,
+takes about four seconds. Now why should it take 4 seconds? Checking this item takes one second,
+checking this item takes three seconds. We know that if, either of these items is
+invalid, I want to go ahead and output an error message and just forget the whole
+thing about adding it to my list. So, why should I wait to execute
+the validation of my number of boxes after I validated the item name? They really should be
+executed in parallel. So, let's go ahead and code that up. Let's go back and we'll go ahead and
+once again comment out this version of the addItem method and uncomment yet
+another version of the addItem method. And this one does both things in parallel. And the way we do that is by capturing the
+main promise which is the return result of the weightless filter service checkName
+method that returns a promise. And then we're going to
+capture the quantityPromise, which is the result of executing WeightLossFilterService.checkQuantity
+method. And here,
+we're going to use our q service.all. And what that takes is
+an array of promises. We can then call the then method on that, which will only get executed once every
+single promise in this array is resolved. However, if any of the promises in
+this array result in a rejection, meaning defer.reject, all promises will be
+cancelled immediately and, the execution will jump into the catch method,
+outputting this error response message. That means that if this promise
+takes much faster to execute and much faster therefore,
+to fail, then this promise. I don't have to wait for
+this promise to finish, in order for me to just cancel the whole execution,
+and output the message. Now, the quantity promise takes
+about a second to execute, whereas the name promise takes
+about three seconds to execute. Let's go ahead and save that and
+let's go back to our browser. If I now enter chips in here and quantity three, meaning a valid
+item with a valid quantity. I click Add, that will take about
+three seconds to execute, not four. Since we're doing both validations
+asynchronously the longer one will run in three seconds but by the time it's done
+the one that takes shorter amount of time will have finished already. Now if I enter cookies in here
+that will also take three seconds, and three seconds to actually fail. And you can see it fails, rejects it, and
+says, stay away from cookies, Yaakov. And that's also because
+that's the longer one, and therefore the three seconds it took
+to fail is the all-encompassing time. But, look what happens if I say chips and then enter something invalid
+like seven for quantity. When I click Add Item take
+a look how fast that fails. It fails almost right away which about
+a second later it says that's too much Yaakov. We can actually do that again click add
+and you can see that it fails right away. So with a construct of $q.all we're
+able to put multiple promises, actually as many as we want, and they
+will all try to execute asynchronously making our entire app
+potentially much faster as well. Okay, let's summarize what
+we learned in this lesson. First of all, let's remember the promises
+give us a lot of flexibility when dealing asynchronous behavior. The $q service is
+the Angular Implementation of Promise API. The new implementation of JavaScript ES6
+has its own promise API and will likely use that,
+once it supported by all major browsers. Promises either get resolved or rejected. Resolved is considered a success, and
+a rejection is considered a failure. The then method that you could call
+on the promise takes two arguments, both of which are function values. The first is a function to handle
+a success, or the resolve outcome, and the second is a function to handle
+the error or the reject outcome. In addition, then method itself returns
+a promise so you could chain it with other promises, and
+make the code a bit more readable as well. Finally we spoke about the $q.all method. That method allows as to execute
+multiple promises in parallel, making things faster, and the same
+time we're able to handles success or failure of all of those promises
+in one central place in our code.
